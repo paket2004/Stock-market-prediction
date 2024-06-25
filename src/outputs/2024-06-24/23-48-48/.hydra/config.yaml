@@ -1,0 +1,7 @@
+dataset: null
+url: parsabg/stocknewseventssentiment-snes-10
+name: SNES1.0
+batch:
+  size: 10000
+  random_seed: 42
+  counter_file: configs/counter.txt

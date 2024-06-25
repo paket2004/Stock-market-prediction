@@ -1,1 +1,14 @@
 
+*.log
+
+*.pdf
+
+*.zip
+
+
+
+/temp/
+
+# Except this specific file in the temp directory
+!/temp/important.txt
+
