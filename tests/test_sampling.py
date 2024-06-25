@@ -19,7 +19,7 @@ def mock_cfg(tmpdir):
         "batch": {
             "counter_file": "counter.txt",
             "random_seed": 42,
-            "size": 10,
+            "size": 100,
             "save_dir": str(tmpdir)
         },
         "dataset": {
@@ -91,20 +91,13 @@ def test_sample_data(mock_get_increment_counter, mock_read_csv, mock_extractall,
             'datasets', 'download', '-d', cfg.dataset.url, '-p', f'{project_root_dir}/temp'
         ])
 
-        # Check if the extraction was called correctly
         mock_extractall.assert_called_once()
 
-        # Check if the DataFrame was read correctly
-        # mock_read_csv.assert_called_once_with(os.path.join(str(data_dir), cfg.dataset.file_name))
-
-        # Check if the output file was created correctly
         output_file = os.path.join(cfg.batch.save_dir, "sample.csv")
         assert os.path.exists(output_file)
 
-        # Check the content of the output file
         output_df = pd.read_csv(output_file)
         assert len(output_df) == cfg.batch.size
 
-    # Clean up: Delete dataset.zip after test completes
     if os.path.exists(dataset_zip_path):
         os.remove(dataset_zip_path)
