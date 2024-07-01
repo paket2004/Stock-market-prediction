@@ -1,9 +1,12 @@
 #!/bin/bash
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../" && pwd)"
+VERSION=""
+
 
 take_data_sample() {
     echo "Taking data sample..."
-    python3 "${ROOT_DIR}/src/data.py"
+    VERSION=$(python3 "${ROOT_DIR}/src/data.py")
+    echo "Data sample verion $version"
 }
 
 
@@ -17,7 +20,10 @@ validate_data_sample() {
 
 version_data_sample() {
     echo "Versioning data sample..."
-    git add "${ROOT_DIR}/data_sample.csv" && git commit -m "Versioning data sample"
+    git add "${ROOT_DIR}/data_sample.csv"
+    git commit -m "Versioning data sample v$VERSION"
+    git tag "v$VERSION"
+    git push origin --tags
 }
 
 

@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 import hydra
 import zipfile
+import yaml
 
 from hydra import initialize, compose
 from omegaconf import OmegaConf, DictConfig
@@ -10,16 +11,18 @@ from omegaconf import OmegaConf, DictConfig
 
 def get_increment_counter(path):
     with open(path, 'r') as counter_file:
-        counter = counter_file.read()
-        if counter == '':
-            counter = 0
-        else:
-            counter = int(counter)
+        counter_data = yaml.safe_load(counter_file)
+        counter = counter_data.get('file_version', 0)
+    
+    new_counter = counter + 1 if counter < 4 else 0
+
     with open(path, 'w') as counter_file:
-        counter_file.write(str(counter+1) if counter < 4 else '0')
+        yaml.safe_dump({'file_version': new_counter}, counter_file)
+
     return counter
 
 project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 @hydra.main(version_base=None, config_path=f"{project_root_dir}/configs", config_name="config")
 def sample_data(cfg: DictConfig = None):
@@ -45,6 +48,8 @@ def sample_data(cfg: DictConfig = None):
     batch = df[counter*batch_size:(counter+1)*batch_size]
 
     batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'))
+
+    return counter
 
 
 if __name__ == "__main__":
