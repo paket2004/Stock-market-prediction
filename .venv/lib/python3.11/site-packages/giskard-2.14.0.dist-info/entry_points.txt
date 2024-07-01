@@ -1,0 +1,5 @@
+[console_scripts]
+giskard = giskard.cli:cli
+
+[mlflow.model_evaluator]
+giskard = giskard.integrations.mlflow.giskard_evaluator:GiskardEvaluator

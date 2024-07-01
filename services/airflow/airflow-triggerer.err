@@ -1,0 +1,5 @@
+[2024-06-30 14:28:00 +0300] [291441] [INFO] Starting gunicorn 22.0.0
+[2024-06-30 14:28:00 +0300] [291441] [INFO] Listening at: http://[::]:8794 (291441)
+[2024-06-30 14:28:00 +0300] [291441] [INFO] Using worker: sync
+[2024-06-30 14:28:00 +0300] [291442] [INFO] Booting worker with pid: 291442
+[2024-06-30 14:28:00 +0300] [291443] [INFO] Booting worker with pid: 291443

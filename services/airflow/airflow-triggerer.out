@@ -1,0 +1,2 @@
+[[34m2024-06-30T14:28:00.761+0300[0m] {[34mtriggerer_job_runner.py:[0m171} INFO[0m - Setting up TriggererHandlerWrapper with handler <FileTaskHandler (NOTSET)>[0m
+[[34m2024-06-30T14:28:00.764+0300[0m] {[34mtriggerer_job_runner.py:[0m227} INFO[0m - Setting up logging queue listener with handlers [<RedirectStdHandler <stdout> (NOTSET)>, <NonCachingFileHandler /home/user/Stock-market-prediction/services/airflow/logs/triggerer.log (NOTSET)>, <TriggererHandlerWrapper (NOTSET)>][0m

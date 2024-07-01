@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/lockfile/pidlockfile.py", line 77, in acquire
+    write_pid_to_pidfile(self.path)
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/lockfile/pidlockfile.py", line 161, in write_pid_to_pidfile
+    pidfile_fd = os.open(pidfile_path, open_flags, open_mode)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileExistsError: [Errno 17] File exists: '/home/user/Stock-market-prediction/services/airflow/airflow-scheduler.pid'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/user/Stock-market-prediction/.venv/bin/airflow", line 8, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/airflow/__main__.py", line 57, in main
+    args.func(args)
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/airflow/cli/cli_config.py", line 49, in command
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/airflow/utils/cli.py", line 114, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/airflow/utils/providers_configuration_loader.py", line 55, in wrapped_function
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/airflow/cli/commands/scheduler_command.py", line 79, in scheduler
+    with ctx:
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/daemon/daemon.py", line 365, in __enter__
+    self.open()
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/daemon/daemon.py", line 357, in open
+    self.pidfile.__enter__()
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/lockfile/__init__.py", line 197, in __enter__
+    self.acquire()
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/daemon/pidfile.py", line 49, in acquire
+    super().acquire(timeout, *args, **kwargs)
+  File "/home/user/Stock-market-prediction/.venv/lib/python3.11/site-packages/lockfile/pidlockfile.py", line 87, in acquire
+    raise AlreadyLocked("%s is already locked" %
+lockfile.AlreadyLocked: /home/user/Stock-market-prediction/services/airflow/airflow-scheduler.pid is already locked
