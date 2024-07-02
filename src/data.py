@@ -28,7 +28,7 @@ project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def sample_data(cfg: DictConfig = None):
 
     counter_file_path = os.path.join(project_root_dir, cfg.batch.counter_file)
-    kaggle_executable = f'{project_root_dir}/env/bin/kaggle'
+    kaggle_executable = f'{project_root_dir}/.venv/bin/kaggle'
     command = [kaggle_executable, 'datasets',  'download',  '-d', cfg.dataset.url, '-p', os.path.join(project_root_dir, 'temp')]
     print(command)
 

@@ -1,51 +1,47 @@
-import great_expectations as ge
-from great_expectations.core.batch import BatchRequest
-from great_expectations.data_context.types.resource_identifiers import ValidationResultIdentifier
 import os
+from great_expectations.data_context import FileDataContext
+import great_expectations as ge
 import pandas as pd
-from great_expectations.core.batch import RuntimeBatchRequest
-
 
 project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+data_path = os.path.join(project_root_dir, 'data', 'samples', 'sample.csv')
 
-def validate_initial_data(df, context_path=f"{project_root_dir}/services/gx", suite_name='initial_validation'):
-    print(context_path)
-    context = ge.data_context.DataContext(context_path)
+data = pd.read_csv(f'{project_root_dir}/data/samples/sample.csv')
 
-    # Save the DataFrame to a CSV file to use it with Great Expectations
-    sample_file_path = os.path.join(context_path, "sample.csv")
-    df.to_csv(sample_file_path, index=False)
+context_path = os.path.abspath(f"{project_root_dir}/services") 
+context = FileDataContext.create(project_root_dir=context_path)
 
-    # Define a batch request
-    batch_request = RuntimeBatchRequest(
-        datasource_name="default_filesystem_datasource",
-        data_connector_name="default_runtime_data_connector_name",
-        data_asset_name="sample_data",  # You can name it anything
-        runtime_parameters={"path": sample_file_path},
-        batch_identifiers={"default_identifier_name": "default_identifier"},
-    )
+data_source = context.sources.add_or_update_pandas(
+                                        name='batch_ds'
+                                        )
+data_asset = data_source.add_csv_asset(
+                                       name='batch_asset',
+                                       filepath_or_buffer=data_path)
 
-    # Get the validator
-    validator = context.get_validator(
-        batch_request=batch_request,
-        expectation_suite_name=suite_name,
-    )
-
-    # Validate the data
-    results = validator.validate()
-
-    # Check if validation passed
-    if not results["success"]:
-        raise Exception("Data validation failed")
-
-    return results
-
-# Usage
-
-df = pd.read_csv(os.path.join(project_root_dir, 'data', 'samples', 'sample.csv'))
-
+suite_name = "initial_validation"
 try:
-    results = validate_initial_data(df)
+    suite = context.add_expectation_suite(suite_name)
+except:
+    suite = context.get_expectation_suite(suite_name)
+
+batch_request = data_asset.build_batch_request()
+
+validator = context.get_validator(batch_request=batch_request, expectation_suite_name=suite_name)
+
+
+validator.expect_column_values_to_not_be_null("Open")
+validator.expect_column_mean_to_be_between("High", min_value=10, max_value=300)
+validator.expect_column_values_to_match_strftime_format("Date", "%Y-%m-%d")
+for column in data.columns:
+    if 'News' in column:
+        validator.expect_column_min_to_be_between(column, min_value=0, max_value=None)
+
+validator.save_expectation_suite()
+validation_result = validator.validate()
+
+
+if not validation_result["success"]:
+    raise Exception("Data validation failed")
+else:
     print("Data validation passed")
-except Exception as e:
-    print(str(e))
+

@@ -94,8 +94,15 @@ data_docs_sites:
       class_name: DefaultSiteIndexBuilder
 
 anonymous_usage_statistics:
-  data_context_id: 60b21f0d-c38c-4973-9a9d-ab4099f25cca
+  data_context_id: c673b37a-85bd-40b5-94f3-a0d92da9a033
   enabled: true
+fluent_datasources:
+  batch_ds:
+    type: pandas
+    assets:
+      batch_asset:
+        type: csv
+        filepath_or_buffer: /home/user/Stock-market-prediction/data/samples/sample.csv
 notebooks:
 include_rendered_content:
   globally: false

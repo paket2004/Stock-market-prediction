@@ -7,5 +7,5 @@ dataset:
 batch:
   size: 10000
   random_seed: 42
-  counter_file: 'configs/file_version.yaml'
+  counter_file: 'configs/data_version.yaml'
   save_dir: 'data/samples'
