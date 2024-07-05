@@ -48,9 +48,7 @@ def sample_data(cfg: DictConfig = None):
     batch = df[counter*batch_size:(counter+1)*batch_size]
 
     batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'))
-
+    
+    print(counter)
     return counter
 
-
-if __name__ == "__main__":
-    sample_data()

@@ -4,10 +4,11 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.baseoperator import chain
 import os
+import subprocess
 
 project_root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sample_path = os.path.join(project_root_dir, 'data', 'samples', 'sample.csv')
-version_path = os.path.join(project_root_dir, 'connfigs', 'data_version.yaml')
+version_path = os.path.join(project_root_dir, 'co   nfigs', 'data_version.yaml')
 
 @dag(
     dag_id="data_extract", 
@@ -28,14 +29,22 @@ def data_extract():
     def version_data(**context):
         version = context['ti'].xcom_pull(task_ids='extraction')
 
-        os.system(f'dvc add {sample_path}')
-        os.system(f'dvc commit -m "Versioning data sample version {version}"')
+        commands = [
+            f'dvc add {sample_path}',
+            f'dvc commit',
+            f'git add {sample_path}.dvc',
+            f'git add {version_path}',
+            f'git commit -m "Versioning data sample version {version}"',
+            f'git tag v{version}',
+            'git push origin --tags',
+            'git push'
+        ]
 
-        os.system(f'git add {sample_path}.dvc {version_path}')
-        os.system(f'git commit -m "Versioning data sample version {version}"')
-        os.system(f'git tag v{version}')
-        os.system(f'git push origin --tags')
-        os.system(f'git push')
+        for command in commands:
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            if result.returncode != 0:
+                raise Exception(f"Command failed: {command}\nOutput: {result.stdout}\nError: {result.stderr}")
+
 
     version = PythonOperator(task_id='versioning', 
                              python_callable=version_data,
