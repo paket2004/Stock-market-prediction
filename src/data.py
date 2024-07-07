@@ -1,7 +1,6 @@
 import os
 import subprocess
 import pandas as pd
-import hydra
 import zipfile
 import yaml
 
@@ -24,31 +23,40 @@ def get_increment_counter(path):
 project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-@hydra.main(version_base=None, config_path=f"{project_root_dir}/configs", config_name="config")
-def sample_data(cfg: DictConfig = None):
+def sample_data():
+    current_dir = os.path.dirname(__file__)
 
-    counter_file_path = os.path.join(project_root_dir, cfg.batch.counter_file)
-    kaggle_executable = f'{project_root_dir}/.venv/bin/kaggle'
-    command = [kaggle_executable, 'datasets',  'download',  '-d', cfg.dataset.url, '-p', os.path.join(project_root_dir, 'temp')]
-    print(command)
+    file_in_another_directory = os.path.join(current_dir, '..', 'configs')
+    relative_path = os.path.relpath(file_in_another_directory, current_dir)
 
-    subprocess.run(command)
-    zip_file_path = f'{project_root_dir}/temp/{cfg.dataset.archive_name}'
-    extract_to_path = f'{project_root_dir}/temp/data'
+    config_name="config"
 
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        zip_ref.extractall(extract_to_path)
+    with initialize(config_path=relative_path):
+        cfg = compose(config_name=config_name)
 
-    file_name = cfg.dataset.file_name
-    df = pd.read_csv(os.path.join(extract_to_path, file_name))
+        counter_file_path = os.path.join(project_root_dir, cfg.batch.counter_file)
+        kaggle_executable = f'{project_root_dir}/.venv/bin/kaggle'
+        command = [kaggle_executable, 'datasets',  'download',  '-d', cfg.dataset.url, '-p', os.path.join(project_root_dir, 'temp')]
+        print(command)
 
-    df = df.sample(frac=1, random_state=cfg.batch.random_seed).reset_index(drop=True)
-    counter = get_increment_counter(counter_file_path)
-    batch_size = cfg.batch.size
-    batch = df[counter*batch_size:(counter+1)*batch_size]
+        subprocess.run(command)
+        zip_file_path = f'{project_root_dir}/temp/{cfg.dataset.archive_name}'
+        extract_to_path = f'{project_root_dir}/temp/data'
 
-    batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'))
-    
-    print(counter)
-    return counter
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to_path)
+
+        file_name = cfg.dataset.file_name
+        df = pd.read_csv(os.path.join(extract_to_path, file_name))
+
+        df = df.sample(frac=1, random_state=cfg.batch.random_seed).reset_index(drop=True)
+        counter = get_increment_counter(counter_file_path)
+        batch_size = cfg.batch.size
+        batch = df[counter*batch_size:(counter+1)*batch_size]
+
+        batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'))
+        
+        print(counter)
+        return counter
+
 

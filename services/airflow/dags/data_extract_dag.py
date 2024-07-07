@@ -4,11 +4,17 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.baseoperator import chain
 import os
+import sys
 import subprocess
+
+# sys.path.append(os.path.join(project_root_dir, 'src'))
+from data import sample_data
+
+
 
 project_root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sample_path = os.path.join(project_root_dir, 'data', 'samples', 'sample.csv')
-version_path = os.path.join(project_root_dir, 'co   nfigs', 'data_version.yaml')
+version_path = os.path.join(project_root_dir, 'configs', 'data_version.yaml')
 
 @dag(
     dag_id="data_extract", 
@@ -18,9 +24,13 @@ version_path = os.path.join(project_root_dir, 'co   nfigs', 'data_version.yaml')
 )
 def data_extract():
 
-    extract = BashOperator(task_id='extraction', 
-                           bash_command=f'python3 {project_root_dir}/src/data.py',
-                           do_xcom_push=True)
+    def call_sample_data():
+        sample_data()
+
+    extract = PythonOperator(task_id='extraction', 
+                            python_callable=sample_data,
+                            do_xcom_push=True)
+
     
     validate = BashOperator(task_id='validation',
                             bash_command=f'python3 {project_root_dir}/scripts/validate_initial_data.py')
@@ -58,3 +68,5 @@ def data_extract():
     
 
 data_extract()
+
+sample_data()
