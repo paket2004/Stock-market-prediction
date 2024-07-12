@@ -10,14 +10,6 @@
       "meta": {}
     },
     {
-      "expectation_type": "expect_column_values_to_match_strftime_format",
-      "kwargs": {
-        "column": "Date",
-        "strftime_format": "%Y-%m-%d"
-      },
-      "meta": {}
-    },
-    {
       "expectation_type": "expect_column_mean_to_be_between",
       "kwargs": {
         "column": "High",
@@ -167,6 +159,14 @@
         "column": "News - Stock Rumors",
         "max_value": null,
         "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_match_strftime_format",
+      "kwargs": {
+        "column": "Date",
+        "strftime_format": "%Y-%m-%d"
       },
       "meta": {}
     }

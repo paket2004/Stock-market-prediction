@@ -4,8 +4,10 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.baseoperator import chain
 import os
+import sys
 import subprocess
 
+# sys.path.append(os.path.join(project_root_dir, 'src'))
 from data import sample_data
 
 
@@ -66,5 +68,3 @@ def data_extract():
     
 
 data_extract()
-
-sample_data()

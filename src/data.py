@@ -8,11 +8,12 @@ from hydra import initialize, compose
 from omegaconf import OmegaConf, DictConfig
 
 import numpy as np
-from tensorflow.python.keras.models import Sequential
-from tensorflow.python.keras.layers import Embedding, Flatten, Dense
+import tensorflow as tf
 from sklearn.decomposition import PCA
-import gensim.downloader as api
+import gensim
 
+import zenml
+from zenml.client import Client
 import dvc.api
 
 
@@ -62,21 +63,25 @@ def sample_data():
         batch_size = cfg.batch.size
         batch = df[counter*batch_size:(counter+1)*batch_size]
 
-        batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'))
+        batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'), index=False)
         
         print(counter)
         return counter
 
 
 def read_datastore():
-    data_path = dvc.api.get_url(f'{project_root_dir}/data/sample_data.csv', 
+    data_path = dvc.api.get_url(f'{project_root_dir}/data/samples/sample.csv', 
                                 remote='local_remote')
     df = pd.read_csv(data_path)
     return df
 
 
 
-def preprocess_data():
+
+def preprocess_data(df):
+
+    model_path = os.path.join(project_root_dir, 'models', "word2vec-google-news-300.model")
+    wv = gensim.models.KeyedVectors.load(model_path)
 
     def encode_time (data, col, max_val):
         data[col + '_sin'] = np.sin(2 * np.pi * data[col]/max_val)
@@ -85,7 +90,6 @@ def preprocess_data():
 
 
     def get_average_embedding(text):
-        wv = api.load('word2vec-google-news-300')
         words = text.split()
         embedding_vector = np.zeros((300,))
         for word in words:
@@ -95,25 +99,23 @@ def preprocess_data():
 
 
 
-    def expand_embedding_list(row):
-        return pd.Series(row['Symbol emb'])
-
 
     #################
 
 
-    stock_data = pd.read_csv("data/samples/sample.csv")
+    stock_data = df.copy()
 
-    numeric_cols = stock_data.select_dtypes(include=["number"]).columns
-    correlation_matrix = stock_data[numeric_cols].corr()
-    correlation_with_target = correlation_matrix['Close'].abs().sort_values(ascending=False)
-    low_correlation = correlation_with_target[correlation_with_target < 0.05]
+    low_correlation = ['News - Dividends', 'News - Corporate Earnings',
+                       'News - Personnel Changes', 'News - Mergers & Acquisitions',
+                       'News - Product Recalls', 'News - Layoffs', 'News - Stock Rumors',
+                       'News - Stocks', 'News - All News Volume', 'News - Analyst Comments']
 
     stock_data_cleaned = stock_data.drop(['Security', 'Adj Close'], axis=1)
-    stock_data_cleaned = stock_data_cleaned.drop(low_correlation.index, axis=1)
+    stock_data_cleaned = stock_data_cleaned.drop(low_correlation, axis=1)
 
     stock_data_cleaned = stock_data_cleaned.dropna()
     stock_data_cleaned.reset_index(drop=True, inplace=True)
+
 
     # Encode cyclic features
     time_info = stock_data_cleaned["Date"]
@@ -131,45 +133,23 @@ def preprocess_data():
     stock_data_cleaned = stock_data_cleaned.drop('Day', axis=1)
 
     stock_data_cleaned = stock_data_cleaned.drop('Date', axis=1)
+
+
     # One-hot-encoding on GICS Sector
     stock_data_cleaned = pd.get_dummies(stock_data_cleaned, columns=['GICS Sector'], prefix='Sector', dtype=int)
 
+    stock_data_cleaned.to_csv(os.path.join(project_root_dir, 'temp', f'sampleAfterOneHot.csv'), index=False)
+
+    # Embedding Symbol
 
     symbol_indices = {symbol: idx for idx, symbol in enumerate(stock_data_cleaned['Symbol'].unique())}
     stock_data_cleaned['Symbol_Index'] = stock_data_cleaned['Symbol'].map(symbol_indices)
 
-    embedding_size = 10  # Dimensionality of the embedding vector
-
-    model = Sequential([
-        Embedding(len(symbol_indices), embedding_size, input_length=1),
-        Flatten(),
-        Dense(16, activation='relu'),
-        Dense(1, activation='linear')
-    ])
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    X = np.array(stock_data_cleaned['Symbol_Index'])
-    y = np.array(stock_data_cleaned['Close'])
-
-    model.fit(X, y, epochs=10, batch_size=1)
-
-    learned_embeddings = model.layers[0].get_weights()[0]
-
-    idx_AAPL = symbol_indices['AAPL']
-    embedding_AAPL = learned_embeddings[idx_AAPL]
-    print(f"Embedding for AAPL: {embedding_AAPL}")
-
-    stock_data_cleaned['Symbol emb'] = np.array(
-        [learned_embeddings[idx] for idx in stock_data_cleaned['Symbol_Index']]).tolist()
+    # Remove Symbol feature
+    stock_data_cleaned = stock_data_cleaned.drop(columns=['Symbol'], axis=1)
 
 
-
-    expanded_embeddings = stock_data_cleaned.apply(expand_embedding_list, axis=1)
-    expanded_embeddings.columns = [f'Symbol emb_{i}' for i in range(len(expanded_embeddings.columns))]
-
-    stock_data_cleaned = pd.concat(
-        [stock_data_cleaned.drop(columns=['Symbol emb', 'Symbol_Index', 'Symbol']), expanded_embeddings], axis=1)
-
+   #Embedding text feature
 
     txt_embeddings = stock_data_cleaned['GICS Sub-Industry'].apply(lambda x: get_average_embedding(x))
     txt_embeddings = np.array(txt_embeddings.tolist())
@@ -183,4 +163,84 @@ def preprocess_data():
 
     X = stock_data_cleaned.drop("Close", axis=1)
     y = stock_data_cleaned[['Close']]
+
+###############################################
+    X.to_csv(os.path.join(project_root_dir, 'temp', f'sampleX.csv'), index=False)
+    y.to_csv(os.path.join(project_root_dir, 'temp', f'sampleY.csv'), index=False)
+    joined = pd.concat([X, y], axis=1)
+    joined.to_csv(os.path.join(project_root_dir, 'temp', f'sampleJoined.csv'), index=False)
+##############################################
+    print('Columns in X:', X.columns.tolist())
+
     return X, y
+
+
+
+def validate_features(X, y):
+    from great_expectations.data_context import FileDataContext
+
+    context = FileDataContext(context_root_dir = f"{project_root_dir}/services/gx")
+
+    df = pd.concat([X, y], axis=1)
+
+
+#################################################
+    print(f"Columns in combined df: {df.columns.tolist()}")
+
+    df.to_csv(os.path.join(project_root_dir, 'temp', f'sample.csv'), index=False)
+
+
+    batch_request = {
+        "runtime_parameters": {"batch_data": df},
+        "batch_identifiers": {"default_identifier_name": "default_identifier"},
+        "datasource_name": "default_pandas_datasource",
+        "data_connector_name": "default_runtime_data_connector_name",
+        "data_asset_name": "default_data_asset"
+    }
+
+
+
+    checkpoint_result = context.run_checkpoint(
+        checkpoint_name="feature_val",
+        batch_request=batch_request,
+    )
+
+    if not checkpoint_result["success"]:
+        print("Data validation failed")
+        for validation_result in checkpoint_result['run_results'].values():
+            result = validation_result['validation_result']
+            for expectation_result in result['results']:
+                if not expectation_result['success']:
+                    print("Failed expectation:")
+                    print(expectation_result['expectation_config']['expectation_type'])
+                    print("Expectation kwargs:")
+                    print(expectation_result['expectation_config']['kwargs'])
+                    if "result" in expectation_result and "observed_value" in expectation_result["result"]:
+                        observed_value = expectation_result["result"]["observed_value"]
+                        print(f"Observed value: {observed_value}")
+                    print("-" * 80)
+        raise Exception("Data validation failed")
+    else:
+        print("Data validation passed")
+
+    return X, y
+
+def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
+    combined_df = pd.concat([X, y], axis=1)
+
+    zenml.save_artifact(data=combined_df, name="features_target", tags=[version])
+
+def retrieve_features(version: str) -> pd.DataFrame:
+    client = Client()
+
+    artifact_versions = client.list_artifact_versions(name="features_target", tag=version, sort_by="version").items
+
+    artifact_versions.reverse()
+
+    if artifact_versions:
+        latest_artifact = artifact_versions[0]
+        df = latest_artifact.load()
+        return df
+    else:
+        raise ValueError(f"No artifacts found with version tag {version}")
+
