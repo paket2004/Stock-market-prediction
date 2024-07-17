@@ -1,8 +1,17 @@
 name: Stock market prediction
 
-python_env: python_env.yaml
-
 entry_points:
-  main:
-    command: "python src/main.py --multirun -n 4 model=gradient_boosting hyperparameters.learning_rate=0.1,0.01,0.001 hyperparameters.n_estimators=100,200,300 hyperparameters.max_depth=3,4,5"
-    
+  gradient_boosting:
+    command: >
+      python src/main.py --multirun\
+      model=gradient_boosting \
+      model.learning_rate=0.1,0.01,0.001\
+      model.n_estimators=100,200,300 \
+      model.max_depth=3,4,5
+
+  mlp:
+    command: >
+      python main.py model=mlp \
+      'model.hidden_layer_sizes=50,100,150' \
+      'model.learning_rate_init=0.1,0.01,0.001' \
+      'model.max_iter=200,300,400'

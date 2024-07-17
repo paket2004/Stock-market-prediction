@@ -114,7 +114,7 @@ def preprocess_data(df):
                        'News - Product Recalls', 'News - Layoffs', 'News - Stock Rumors',
                        'News - Stocks', 'News - All News Volume', 'News - Analyst Comments']
 
-    stock_data_cleaned = stock_data.drop(['Security', 'Adj Close'], axis=1)
+    stock_data_cleaned = stock_data.drop(['Security', 'Close'], axis=1)
     stock_data_cleaned = stock_data_cleaned.drop(low_correlation, axis=1)
 
     stock_data_cleaned = stock_data_cleaned.dropna()
@@ -165,8 +165,8 @@ def preprocess_data(df):
 
     stock_data_cleaned = pd.concat([stock_data_cleaned.drop('GICS Sub-Industry', axis=1), embedding_cols], axis=1)
 
-    X = stock_data_cleaned.drop("Close", axis=1)
-    y = stock_data_cleaned[['Close']]
+    X = stock_data_cleaned.drop("Adj Close", axis=1)
+    y = stock_data_cleaned[['Adj Close']]
 
     print('Columns in X:', X.columns.tolist())
 
@@ -220,14 +220,15 @@ def validate_features(X, y):
 def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
     combined_df = pd.concat([X, y], axis=1)
 
-    zenml.save_artifact(data=combined_df, name="features_target", tags=[version])
+    zenml.save_artifact(data=combined_df, name="features_target", version=version)
 
 def extract_data(version: str) -> pd.DataFrame:
-    artifact = zenml.load_artifact(name="features_target", tags=[version])
+    artifact = zenml.load_artifact("features_target", version)
 
-    data = artifact.data  
+    data = artifact
 
     return data
+
 
 def split_data(train_data: pd.DataFrame, split_ratio: dict):
 

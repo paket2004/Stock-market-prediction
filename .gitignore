@@ -1,5 +1,14 @@
 .venv/
 
+mlruns/
+
+outputs/
+
+multirun/
+
+mlartifacts
+
+services/airflow/dags/services/zenml/
 *.log
 
 *.pdf

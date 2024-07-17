@@ -10,36 +10,34 @@ import mlflow.sklearn
 import mlflow.exceptions
 
 def train(train_data: pd.DataFrame, model_config: dict):
-    X_train = train_data.drop(columns='close')
-    y_train = train_data['close']
+    X_train = train_data.drop(columns='Adj Close')
+    y_train = train_data['Adj Close']
 
-    if model_config['type'] == 'gradient_boosting':
+    if model_config['type'] == 'gradient boosting':
         model = GradientBoostingRegressor(
-            learning_rate=model_config['hyperparameters']['learning_rate'],
-            n_estimators=model_config['hyperparameters']['n_estimators'],
-            max_depth=model_config['hyperparameters']['max_depth']
+            learning_rate=model_config['learning_rate'],
+            n_estimators=model_config['n_estimators'],
+            max_depth=model_config['max_depth']
         )
     elif model_config['type'] == 'mlp':
         model = MLPRegressor(
-            hidden_layer_sizes=model_config['hyperparameters']['hidden_layer_sizes'],
-            activation=model_config['hyperparameters']['activation'],
-            solver=model_config['hyperparameters']['solver'],
-            learning_rate_init=model_config['hyperparameters']['learning_rate_init'],
-            max_iter=model_config['hyperparameters']['max_iter'],
+            hidden_layer_sizes=model_config['hidden_layer_sizes'],
+            activation=model_config['activation'],
+            solver=model_config['solver'],
+            learning_rate_init=model_config['learning_rate_init'],
+            max_iter=model_config['max_iter'],
         )
     else:
         raise ValueError("Unsupported model type: {}".format(model_config['type']))
 
     model.fit(X_train, y_train)
 
-    mlflow.sklearn.log_model(model, "model")
-
     return model
 
 
 def evaluate(model, val_data: pd.DataFrame):
-    X_val = val_data.drop(columns='close')  # Replace 'close' with your actual target column name
-    y_val = val_data['close']  # Replace 'close' with your actual target column name
+    X_val = val_data.drop(columns='Adj Close') 
+    y_val = val_data['Adj Close'] 
 
     y_pred = model.predict(X_val)
 
@@ -59,11 +57,16 @@ def evaluate(model, val_data: pd.DataFrame):
 
 
 def log_metadata(metrics, model, params, prefix):
-    experiment_name = "model"
+    print('\n\nparams:\n', params, '\n\n')
+
+    mlflow.set_tracking_uri(uri="http://localhost:5000")
+    experiment_name = "Stock Market Prediction"
     try:
         experiment_id = mlflow.create_experiment(name=experiment_name)
     except mlflow.exceptions.MlflowException as e:
         experiment_id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+
+    mlflow.sklearn.autolog(disable=True)
 
     with mlflow.start_run(run_name="run-01", experiment_id=experiment_id) as run:
 
@@ -76,7 +79,6 @@ def log_metadata(metrics, model, params, prefix):
             "r2": metrics['r2']
         })
 
-        mlflow.set_tag(f"{prefix} Info", f"{model['type']} model for my data")
-
+        mlflow.set_tag(f"{prefix} Info", f"{params['type']} model for my data")
 
         mlflow.sklearn.log_model(model, 'regression_model')
