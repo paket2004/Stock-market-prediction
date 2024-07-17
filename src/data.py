@@ -70,7 +70,8 @@ def sample_data():
 
 
 def read_datastore():
-    data_path = dvc.api.get_url(f'{project_root_dir}/data/samples/sample.csv', 
+    data_path = dvc.api.get_url(f'data/samples/sample.csv', 
+                                repo=project_root_dir,
                                 remote='local_remote')
     df = pd.read_csv(data_path)
     return df
@@ -164,12 +165,6 @@ def preprocess_data(df):
     X = stock_data_cleaned.drop("Close", axis=1)
     y = stock_data_cleaned[['Close']]
 
-###############################################
-    X.to_csv(os.path.join(project_root_dir, 'temp', f'sampleX.csv'), index=False)
-    y.to_csv(os.path.join(project_root_dir, 'temp', f'sampleY.csv'), index=False)
-    joined = pd.concat([X, y], axis=1)
-    joined.to_csv(os.path.join(project_root_dir, 'temp', f'sampleJoined.csv'), index=False)
-##############################################
     print('Columns in X:', X.columns.tolist())
 
     return X, y
@@ -182,12 +177,6 @@ def validate_features(X, y):
     context = FileDataContext(context_root_dir = f"{project_root_dir}/services/gx")
 
     df = pd.concat([X, y], axis=1)
-
-
-#################################################
-    print(f"Columns in combined df: {df.columns.tolist()}")
-
-    df.to_csv(os.path.join(project_root_dir, 'temp', f'sample.csv'), index=False)
 
 
     batch_request = {
@@ -229,18 +218,4 @@ def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
     combined_df = pd.concat([X, y], axis=1)
 
     zenml.save_artifact(data=combined_df, name="features_target", tags=[version])
-
-def retrieve_features(version: str) -> pd.DataFrame:
-    client = Client()
-
-    artifact_versions = client.list_artifact_versions(name="features_target", tag=version, sort_by="version").items
-
-    artifact_versions.reverse()
-
-    if artifact_versions:
-        latest_artifact = artifact_versions[0]
-        df = latest_artifact.load()
-        return df
-    else:
-        raise ValueError(f"No artifacts found with version tag {version}")
 

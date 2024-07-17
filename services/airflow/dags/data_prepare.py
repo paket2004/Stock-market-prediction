@@ -2,20 +2,22 @@ from zenml.pipelines import pipeline
 from typing import Annotated, Optional, Tuple
 
 from zenml.steps import step
+import os
 import yaml
 import pandas as pd
 
 import data as dt
 
-
+project_root_dir = '/home/user/Stock-market-prediction'
 
 @step(enable_cache=False)
 def extract_data_step(
                      ) -> Tuple[Annotated[pd.DataFrame, 'data'], 
                                 Annotated[str, 'version']]:
 
+    print(os.path.abspath(__file__))
     df = dt.read_datastore()
-    with open("./configs/data_version.yaml", 'r') as file:
+    with open(f"{project_root_dir}/configs/data_version.yaml", 'r') as file:
         config = yaml.safe_load(file)
         data_version = config['file_version']
 

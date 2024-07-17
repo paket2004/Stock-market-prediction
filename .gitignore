@@ -13,3 +13,5 @@
 # Except this specific file in the temp directory
 !/temp/important.txt
 
+models/word2vec-google-news-300.model
+models/word2vec-google-news-300.model.vectors.npy

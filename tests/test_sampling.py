@@ -2,10 +2,12 @@ import pytest
 import sys
 import os
 import pandas as pd
+from unittest import mock
 from unittest.mock import patch, MagicMock
 from omegaconf import OmegaConf
 from hydra import initialize, compose
-import zipfile
+import numpy as np
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.data import sample_data, get_increment_counter
@@ -31,73 +33,119 @@ def mock_cfg(tmpdir):
     return OmegaConf.create(cfg)
 
 
-def test_get_increment_counter(tmpdir):
-    # Create a temporary file to act as the counter file
-    counter_file = tmpdir.join("counter.txt")
 
-    # Initial write to the file
-    counter_file.write('0')
+def test_get_increment_counter(tmpdir):
+    import yaml
+
+    counter_file = tmpdir.join("counter.yaml")
+    data = {'file_version': 0}
+    with open(counter_file, 'w') as yaml_file:
+        yaml.safe_dump(data, yaml_file, default_flow_style=False)
 
     for expected in [0, 1, 2, 3, 4, 0]:
         counter = get_increment_counter(counter_file)
         assert counter == expected
 
 
-@patch("src.data.subprocess.run")
-@patch("src.data.zipfile.ZipFile.extractall")
-@patch("src.data.pd.read_csv")
-@patch("src.data.get_increment_counter")
-def test_sample_data(mock_get_increment_counter, mock_read_csv, mock_extractall, mock_run, mock_cfg, tmpdir):
-    mock_get_increment_counter.return_value = 0
-    mock_run.return_value = None
-    mock_read_csv.return_value = pd.DataFrame({
-        "column1": range(100),
-        "column2": range(100, 200)
+
+from data import sample_data
+@mock.patch("data.os.path.join")
+@mock.patch("data.os.path.relpath")
+@mock.patch("data.initialize")
+@mock.patch("data.compose")
+@mock.patch("data.subprocess.run")
+@mock.patch("data.zipfile.ZipFile")
+@mock.patch("data.pd.read_csv")
+@mock.patch("data.get_increment_counter")
+@mock.patch('data.pd.DataFrame.to_csv')
+def test_sample_data(
+    mock_to_csv,
+    mock_get_increment_counter,
+    mock_read_csv,
+    mock_ZipFile,
+    mock_run,
+    mock_compose,
+    mock_initialize,
+    mock_relpath,
+    mock_join,
+):
+    # Mock return values and behaviors
+    mock_join.side_effect = lambda *args: os.path.normpath("/".join(args))
+    mock_relpath.return_value = "relative_path"
+
+    mock_initialize.return_value.__enter__ = mock.Mock(return_value=None)
+    mock_initialize.return_value.__exit__ = mock.Mock(return_value=None)   
+    from types import SimpleNamespace
+
+    def dict_to_namespace(d):
+        return SimpleNamespace(**{k: dict_to_namespace(v) if isinstance(v, dict) else v for k, v in d.items()})
+
+    mock_compose.return_value = dict_to_namespace({ 
+        'batch': {
+            'counter_file': 'counter.yaml',
+            'random_seed': 42,
+            'size': 10,
+            'save_dir': 'saved_batches',
+        },
+        'dataset': {
+            'url': 'some_dataset_url',
+            'archive_name': 'archive.zip',
+            'file_name': 'data.csv',
+        },
     })
 
-    # Setup temporary directory structure
-    temp_dir = tmpdir.mkdir("temp")
-    data_dir = temp_dir.mkdir("data")
-    save_dir = tmpdir.mkdir("save")
+    mock_get_increment_counter.return_value = 1
 
-    # Create dataset.zip in /temp directory
-    dataset_zip_path = os.path.join(os.path.join(project_root_dir, 'temp', "dataset.zip"))
-    with zipfile.ZipFile(dataset_zip_path, 'w') as zipf:
-        zipf.write(os.path.join(project_root_dir, 'temp'), arcname=mock_cfg.dataset.archive_name)
-    if os.path.exists(dataset_zip_path):
-        print('exists')
+    sample_df = pd.DataFrame({
+        'column1': range(100),
+        'column2': range(100, 200),
+    })
+    mock_read_csv.return_value = sample_df
+
+    mock_run.return_value = None
+    mock_zip_instance = mock.Mock()
+    mock_ZipFile.return_value.__enter__.return_value = mock_zip_instance
+
+    # Call the function
+    counter = sample_data()
+
+    # Assertions
+    assert counter == 1
+    mock_initialize.assert_called_once_with(config_path="relative_path")
+    mock_compose.assert_called_once_with(config_name="config")
+    mock_get_increment_counter.assert_called_once()
+    mock_read_csv.assert_called_once()
+    mock_run.assert_called_once()
+    mock_ZipFile.assert_called_once()
+    mock_zip_instance.extractall.assert_called_once()
+
+    # Check if the sample.csv was created correctly
+    mock_read_csv_df = sample_df.sample(frac=1, random_state=42).reset_index(drop=True)
+    batch = mock_read_csv_df[10:20]
+    batch.to_csv.assert_called_once_with(os.path.join("/home/user/Stock-market-prediction", 'saved_batches', 'sample.csv'), index=False)
 
 
 
-    mock_zip_file = MagicMock()
-    mock_zip_file.__enter__.return_value = mock_zip_file
-    mock_extractall.side_effect = lambda extract_to: mock_zip_file.extractall(extract_to)
 
-    # Initialize Hydra with a relative config path and the mock configuration
-    with initialize(config_path=None):
-        cfg = mock_cfg
-        cfg.batch.save_dir = str(save_dir)
-        cfg.batch.counter_file = str(tmpdir.join("counter.txt"))
 
-        # Write initial counter file
-        counter_file = tmpdir.join("counter.txt")
-        counter_file.write("0")
+from data import read_datastore  
+@mock.patch('data.dvc.api.get_url')
+@mock.patch('data.pd.read_csv')
+def test_read_datastore(mock_read_csv, mock_get_url):
 
-        sample_data(cfg)
+    mock_get_url.return_value = '/mock/path/to/sample.csv'
 
-        # Check if the Kaggle command was called correctly
-        mock_run.assert_called_with([
-            f'{project_root_dir}/env/bin/kaggle',
-            'datasets', 'download', '-d', cfg.dataset.url, '-p', f'{project_root_dir}/temp'
-        ])
+    sample_df = pd.DataFrame({
+        'column1': [1, 2, 3],
+        'column2': ['a', 'b', 'c']
+    })
 
-        mock_extractall.assert_called_once()
+    mock_read_csv.return_value = sample_df
 
-        output_file = os.path.join(cfg.batch.save_dir, "sample.csv")
-        assert os.path.exists(output_file)
+    result_df = read_datastore()
 
-        output_df = pd.read_csv(output_file)
-        assert len(output_df) == cfg.batch.size
+    mock_get_url.assert_called_once_with('data/samples/sample.csv', repo='/home/user/Stock-market-prediction', remote='local_remote')
+    mock_read_csv.assert_called_once_with('/mock/path/to/sample.csv')
+    pd.testing.assert_frame_equal(result_df, sample_df)
 
-    if os.path.exists(dataset_zip_path):
-        os.remove(dataset_zip_path)
+
