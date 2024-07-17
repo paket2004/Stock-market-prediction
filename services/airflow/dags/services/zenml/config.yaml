@@ -1,0 +1,18 @@
+active_stack_id: 2df5c27e-694e-4580-b794-d9d8797c22aa
+active_workspace_name: default
+analytics_opt_in: true
+store:
+  backup_directory: /home/user/Stock-market-prediction/services/airflow/dags/services/zenml/database_backup
+  backup_strategy: in-memory
+  database: /home/user/Stock-market-prediction/services/airflow/dags/services/zenml/local_stores/default_zen_store/zenml.db
+  driver: sqlite
+  max_overflow: 20
+  pool_pre_ping: true
+  pool_size: 20
+  secrets_store:
+    type: sql
+  ssl_verify_server_cert: false
+  type: sql
+  url: sqlite:////home/user/Stock-market-prediction/services/airflow/dags/services/zenml/local_stores/default_zen_store/zenml.db
+user_id: 3fdd4b57-342b-4310-9902-543e3dec5c91
+version: 0.58.2
