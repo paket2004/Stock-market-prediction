@@ -1,0 +1,6 @@
+artifact_location: file:///home/user/Stock-market-prediction/mlruns/348430625547312712
+creation_time: 1721195578759
+experiment_id: '348430625547312712'
+last_update_time: 1721195578759
+lifecycle_stage: active
+name: model

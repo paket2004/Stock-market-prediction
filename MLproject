@@ -4,4 +4,5 @@ python_env: python_env.yaml
 
 entry_points:
   main:
-    command: "python src/main.py --multirun"
+    command: "python src/main.py --multirun -n 4 model=gradient_boosting hyperparameters.learning_rate=0.1,0.01,0.001 hyperparameters.n_estimators=100,200,300 hyperparameters.max_depth=3,4,5"
+    

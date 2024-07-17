@@ -16,6 +16,9 @@ import zenml
 from zenml.client import Client
 import dvc.api
 
+from sklearn.model_selection import train_test_split
+
+
 
 def get_increment_counter(path):
     with open(path, 'r') as counter_file:
@@ -219,3 +222,17 @@ def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
 
     zenml.save_artifact(data=combined_df, name="features_target", tags=[version])
 
+def extract_data(version: str) -> pd.DataFrame:
+    artifact = zenml.load_artifact(name="features_target", tags=[version])
+
+    data = artifact.data  
+
+    return data
+
+def split_data(train_data: pd.DataFrame, split_ratio: dict):
+
+    train_size = split_ratio['train']
+
+    train_set, val_set = train_test_split(train_data, train_size=train_size, random_state=42)
+
+    return train_set, val_set

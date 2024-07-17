@@ -1,3 +1,7 @@
+defaults:
+  - model: gradient_boosting  
+
+
 dataset:
   url: "parsabg/stocknewseventssentiment-snes-10"
   archive_name: 'stocknewseventssentiment-snes-10.zip'
