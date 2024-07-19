@@ -14,6 +14,7 @@ import os
 from tqdm import tqdm
 import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
+import giskard
 random_seed = 42
 np.random.seed(random_seed)
 
@@ -36,7 +37,10 @@ def plot_and_log_metrics(y_true, y_pred, fold):
 
 
 
-def train(train_data: pd.DataFrame, model_config: dict):
+def train(train_data: pd.DataFrame, validate_data: pd.DataFrame, model_config: dict):
+
+    best_models = dict()
+
     X_train = train_data.drop(columns='Adj Close')
     y_train = train_data['Adj Close']
     
@@ -49,12 +53,14 @@ def train(train_data: pd.DataFrame, model_config: dict):
     
     kf = KFold(n_splits=3)
 
-    mlflow.set_tracking_uri(uri="http://localhost:5000")
-    experiment_name = "Stock Market Prediction"
-    try:
-        experiment_id = mlflow.create_experiment(name=experiment_name)
-    except mlflow.exceptions.MlflowException as e:
-        experiment_id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+########################################################################################################
+    # mlflow.set_tracking_uri(uri="http://localhost:5000")
+    # experiment_name = "Stock Market Prediction"
+    # try:
+    #     experiment_id = mlflow.create_experiment(name=experiment_name)
+    # except mlflow.exceptions.MlflowException as e:
+    #     experiment_id = mlflow.get_experiment_by_name(experiment_name).experiment_id
+##########################################################################################################
 
     mlflow.sklearn.autolog(disable=True)  
 
@@ -62,9 +68,12 @@ def train(train_data: pd.DataFrame, model_config: dict):
         param_dict = dict(zip(param_names, params))
         if model_config['type'] == 'gradient boosting':
             model = GradientBoostingRegressor(random_state=random_seed, **param_dict)
+            print('starting gradient boosting ...')
+        
         elif model_config['type'] == 'lightgbm':
             model = LGBMRegressor(random_state=random_seed, **param_dict)
             print('starting lightGBM ...')
+
         else:
             raise ValueError("Unsupported model type: {}".format(model_config['type']))
         
@@ -77,26 +86,36 @@ def train(train_data: pd.DataFrame, model_config: dict):
             y_pred = model.predict(X_fold_val)
             fold_score = mean_squared_error(y_fold_val, y_pred)
             fold_scores.append(fold_score)
-            
-            # Log the model for this fold
-        with mlflow.start_run(run_name=f"{model_config['type']} {params}", experiment_id=experiment_id) as run:
-            mlflow.log_params(param_dict)
-            mlflow.log_metric("mse", fold_score)
-            mlflow.sklearn.log_model(model, f"model_fold_{fold}")
-
-            plot_and_log_metrics(y_fold_val, y_pred, fold)
-
         
         avg_score = np.mean(fold_scores)
-        if avg_score < best_score:
-            best_score = avg_score
-            best_model = model
-            best_params = param_dict
+        best_models[model] = [avg_score, param_dict]
+
+
+        evaluate(model, model_config['type'], validate_data, 'train', param_dict)
+
+    best_models = dict(sorted(best_models.items(), key=lambda item: item[1][0]))
+
+    return best_models
+            
+            # Log the model for this fold
+    #     with mlflow.start_run(run_name=f"{model_config['type']} {params}", experiment_id=experiment_id) as run:
+    #         mlflow.log_params(param_dict)
+    #         mlflow.log_metric("mse", fold_score)
+    #         mlflow.sklearn.log_model(model, f"model_fold_{fold}")
+
+    #         plot_and_log_metrics(y_fold_val, y_pred, fold)
+
+        
+    #     avg_score = np.mean(fold_scores)
+    #     if avg_score < best_score:
+    #         best_score = avg_score
+    #         best_model = model
+    #         best_params = param_dict
     
-    return best_model, best_params, best_score
+    # return best_model, best_params, best_score
 
 
-def evaluate(model, val_data: pd.DataFrame):
+def evaluate(model, model_type, val_data, context, params=None):
     X_val = val_data.drop(columns='Adj Close') 
     y_val = val_data['Adj Close'] 
 
@@ -106,19 +125,37 @@ def evaluate(model, val_data: pd.DataFrame):
     mse = mean_squared_error(y_val, y_pred)
     mae = mean_absolute_error(y_val, y_pred)
     r2 = r2_score(y_val, y_pred)
-    accuracy = np.mean(np.abs((y_val - y_pred) / y_val) < 0.01)  # 10% margin    
+    accuracy = np.mean(np.abs((y_val - y_pred) / y_val) < 0.05)  # 5% margin    
 
-    return {
+    metrics = {
         "mse": mse,
         "mae": mae,
         "r2": r2,
         "accuracy": accuracy
-    }, y_val, y_pred
+    }
+    log_metadata(metrics, model, model_type, X_val, y_val, y_pred, context, params)
+    # return {
+    #     "mse": mse,
+    #     "mae": mae,
+    #     "r2": r2,
+    #     "accuracy": accuracy
+    # }, X_val, y_val, y_pred
 
 
 
-def log_metadata(metrics, model, params, model_type, y_val, y_pred, prefix):
+def log_metadata(metrics, model, model_type, X, y_val, y_pred, context, params=None):
     print('\n\nparams:\n', params, '\n\n')
+
+    eval_data = X.copy()
+    eval_data["true"] = y_val
+
+    # Assign the decoded predictions to the Evaluation Dataset
+    eval_data["predictions"] = y_pred
+
+    # Create the PandasDataset for use in mlflow evaluate
+    pd_dataset = mlflow.data.from_pandas(
+        eval_data, predictions="predictions", targets="true"
+    )
 
     mlflow.set_tracking_uri(uri="http://localhost:5000")
     experiment_name = "Stock Market Prediction"
@@ -131,9 +168,12 @@ def log_metadata(metrics, model, params, model_type, y_val, y_pred, prefix):
 
     if mlflow.active_run():
         mlflow.end_run()
-    with mlflow.start_run(run_name=f"best {model_type} model, {prefix}", experiment_id=experiment_id) as run:
+    with mlflow.start_run(run_name=f"{model_type} {params.values() if params else ''}, {context}", experiment_id=experiment_id) as run:
 
-        mlflow.log_params(params=params)
+        mlflow.log_input(pd_dataset, context=context)
+        
+        if params:
+            mlflow.log_params(params=params)
 
         mlflow.log_metrics({
             "accuracy": metrics['accuracy'],
@@ -142,9 +182,15 @@ def log_metadata(metrics, model, params, model_type, y_val, y_pred, prefix):
             "r2": metrics['r2']
         })
 
-        mlflow.set_tag(f"{prefix} Info", f"{model_type} model for my data")
+        mlflow.set_tag(f"{context} info", f"{model_type} model for my data")
+        print()
+        print(X.columns)
+        mlflow.sklearn.log_model(model, 'regression_model', input_example=X)
 
-        mlflow.sklearn.log_model(model, 'regression_model')
+        result = mlflow.evaluate(data=pd_dataset, 
+                                 model_type='regressor', 
+                                 evaluators = ["default"])
+
 
         plot_and_log_metrics(y_val, y_pred, 0)
 

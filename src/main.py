@@ -18,7 +18,7 @@ def get_version():
     return config['file_version']
 
 
-def download_artifacts(dst_path='../results'):
+def download_artifacts(dst_path='results'):
     client = MlflowClient()
 
     experiment_name = "Stock Market Prediction"
@@ -29,7 +29,7 @@ def download_artifacts(dst_path='../results'):
     runs = mlflow.search_runs(experiment_ids=[experiment_id])
     
     # Download artifacts for each run
-    for run_id, run_name in zip(runs['run_id'], runs['run_name']):
+    for run_id, run_name in zip(runs['run_id'], runs['tags.mlflow.runName']):
 
         print(run_id)
         print(client.list_artifacts(run_id))
@@ -40,9 +40,11 @@ def download_artifacts(dst_path='../results'):
         client.download_artifacts(run_id, 'performance.png', dst_path=plot_folder)
 
 
+
 @hydra.main(config_path="../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
     print('started main.py...')
+
 
     train_version = 0 #get_version()
     test_version = train_version+1 if train_version < 4 else 0
@@ -53,16 +55,23 @@ def main(cfg: DictConfig):
     train_data, val_data = split_data(data, cfg.split_ratio)
 
     test_data = extract_data(str(test_version))
+    best_models = train(train_data, val_data, cfg.model)
+    
+    for i, model in enumerate(best_models):
+        if i == 3:
+            break
+        params = best_models[model][1]
+        evaluate(model, cfg.model.type, test_data, 'test', params)
 
-    model, params, _ = train(train_data, cfg.model)
+    # model, params, _ = train(train_data, cfg.model)
 
-    val_metrics, y_val, y_pred = evaluate(model, val_data)
+    # val_metrics, X, y_val, y_pred = evaluate(model, val_data)
 
-    log_metadata(val_metrics, model, params, cfg.model.type, y_val, y_pred, prefix='Val')
+    # log_metadata(val_metrics, model, params, cfg.model.type, X, y_val, y_pred, prefix='Val')
 
-    test_metrics, y_val, y_pred = evaluate(model, test_data)
+    # test_metrics, X, y_val, y_pred = evaluate(model, test_data)
 
-    log_metadata(test_metrics, model, params, cfg.model.type, y_val, y_pred, prefix='Test')
+    # log_metadata(test_metrics, model, params, cfg.model.type, X, y_val, y_pred, prefix='Test')
 
     download_artifacts()
 
