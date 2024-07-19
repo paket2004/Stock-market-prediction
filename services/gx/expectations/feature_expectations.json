@@ -47,14 +47,14 @@
     {
       "expectation_type": "expect_column_to_exist",
       "kwargs": {
-        "column": "Close"
+        "column": "Adj Close"
       },
       "meta": {}
     },
     {
       "expectation_type": "expect_column_values_to_not_be_null",
       "kwargs": {
-        "column": "Close"
+        "column": "Adj Close"
       },
       "meta": {}
     },
@@ -631,7 +631,7 @@
     {
       "expectation_type": "expect_column_values_to_be_between",
       "kwargs": {
-        "column": "Close",
+        "column": "Adj Close",
         "min_value": 0
       },
       "meta": {}

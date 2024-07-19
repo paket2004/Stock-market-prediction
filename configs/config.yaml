@@ -2,6 +2,7 @@ defaults:
   - model: gradient_boosting  
   - _self_
 
+best_model_name: None
 
 split_ratio:
   train: 0.8
@@ -17,3 +18,7 @@ batch:
   random_seed: 42
   counter_file: 'configs/data_version.yaml'
   save_dir: 'data/samples'
+
+data:
+  target_cols: ['Adj Close']
+  cat_cols: ['GICS Sector']

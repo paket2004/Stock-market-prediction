@@ -18,6 +18,7 @@ import dvc.api
 
 from sklearn.model_selection import train_test_split
 
+random_seed = 42
 
 
 def get_increment_counter(path):
@@ -220,10 +221,11 @@ def validate_features(X, y):
 def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
     combined_df = pd.concat([X, y], axis=1)
 
-    zenml.save_artifact(data=combined_df, name="features_target", version=version)
+    zenml.save_artifact(data=combined_df, name="feature_target", version=version)
+    print('saved data v', version)
 
 def extract_data(version: str) -> pd.DataFrame:
-    artifact = zenml.load_artifact("features_target", version)
+    artifact = zenml.load_artifact("feature_target", version)
 
     data = artifact
 
@@ -234,6 +236,6 @@ def split_data(train_data: pd.DataFrame, split_ratio: dict):
 
     train_size = split_ratio['train']
 
-    train_set, val_set = train_test_split(train_data, train_size=train_size, random_state=42)
+    train_set, val_set = train_test_split(train_data, train_size=train_size, random_state=random_seed)
 
     return train_set, val_set

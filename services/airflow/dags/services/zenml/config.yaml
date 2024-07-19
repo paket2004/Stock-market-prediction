@@ -1,18 +1,13 @@
-active_stack_id: 2df5c27e-694e-4580-b794-d9d8797c22aa
+active_stack_id: 8ae6b184-be62-4957-9903-3ed1f8876ad3
 active_workspace_name: default
 analytics_opt_in: true
 store:
-  backup_directory: /home/user/Stock-market-prediction/services/airflow/dags/services/zenml/database_backup
-  backup_strategy: in-memory
-  database: /home/user/Stock-market-prediction/services/airflow/dags/services/zenml/local_stores/default_zen_store/zenml.db
-  driver: sqlite
-  max_overflow: 20
-  pool_pre_ping: true
-  pool_size: 20
-  secrets_store:
-    type: sql
-  ssl_verify_server_cert: false
-  type: sql
-  url: sqlite:////home/user/Stock-market-prediction/services/airflow/dags/services/zenml/local_stores/default_zen_store/zenml.db
-user_id: 3fdd4b57-342b-4310-9902-543e3dec5c91
-version: 0.58.2
+  api_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyYzY1NjliMi1iYTNhLTQ5NmEtYTRmOS02ZGRjZTJkM2IwOTQiLCJpc3MiOiI5MDBkZWMxMi1hYzIyLTQ5YzgtOTVlYi1hMmVjOWU4NWQxYzgiLCJhdWQiOiI5MDBkZWMxMi1hYzIyLTQ5YzgtOTVlYi1hMmVjOWU4NWQxYzgifQ._8iNSOMX2ckYghBuiDPiWvPVHsNqUB6AtINh8XzvVM0
+  http_timeout: 30
+  password: ''
+  type: rest
+  url: http://127.0.0.1:8237
+  username: default
+  verify_ssl: true
+user_id: 900dec12-ac22-49c8-95eb-a2ec9e85d1c8
+version: 0.62.0
