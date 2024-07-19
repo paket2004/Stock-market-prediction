@@ -198,16 +198,7 @@ def log_metadata(metrics, model, model_type, X, y_val, y_pred, context, params=N
 
 
 def retrieve_model_with_alias(model_name, model_alias):
-    """
-    Retrieve an MLflow model based on its name and alias.
 
-    Parameters:
-    - model_name (str): Name of the MLflow model.
-    - model_alias (str): Alias (version alias) of the model.
-
-    Returns:
-    - mlflow.pyfunc.PyFuncModel: Loaded PyFuncModel object representing the MLflow model.
-    """
     client = MlflowClient()
 
     # Get model version information by alias

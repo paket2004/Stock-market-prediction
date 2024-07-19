@@ -35,7 +35,7 @@ def download_artifacts(dst_path='results'):
         print(client.list_artifacts(run_id))
 
         plot_folder = os.path.join(dst_path, run_name)
-        os.makedirs(plot_folder)
+        os.makedirs(plot_folder, exist_ok=True)
 
         client.download_artifacts(run_id, 'performance.png', dst_path=plot_folder)
 
