@@ -3,3 +3,10 @@ name: Stock market prediction
 entry_points:
   main:
     command: python src/main.py -m model=lightgbm,gradient_boosting
+
+  evaluate:
+    parameters:
+      model_alias: {type: str, default: "champion"}
+      model_name: {type: str, default: "boosting_01_300_4"}
+      data_sample_version: {type: int, default: 0}
+    command: "python src/evaluate.py --model_alias {model_alias} --data_sample_version {data_sample_version}"
