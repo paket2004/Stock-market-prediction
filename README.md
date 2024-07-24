@@ -1,7 +1,7 @@
 # Stock-market-prediction
 This repository contains code for predicting stock market trends using various machine learning and data processing techniques. The main goal of this project is to analyze historical stock market data and create models that can predict future stock prices.
 
-![Test code workflow](https://github.com/paket2004/Stock-Market-Prediction/actions/workflows/test-code.yaml/badge.svg)
+![Test code workflow](https://github.com/paket2004/Stock-Market-Prediction/actions/workflows/test-code.yaml/badge.svg?test_data)
 ## Installation
 To set up the project, follow these steps:
   1. Clone the repository:
