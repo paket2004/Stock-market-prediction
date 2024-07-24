@@ -124,28 +124,3 @@ def test_sample_data(
     batch = mock_read_csv_df[10:20]
     batch.to_csv.assert_called_once_with(os.path.join(project_root_dir, 'saved_batches', 'sample.csv'), index=False)
 
-
-
-
-
-# from data import read_datastore  
-# @mock.patch('data.dvc.api.get_url')
-# @mock.patch('data.pd.read_csv')
-# def test_read_datastore(mock_read_csv, mock_get_url):
-
-#     mock_get_url.return_value = '/mock/path/to/sample.csv'
-
-#     sample_df = pd.DataFrame({
-#         'column1': [1, 2, 3],
-#         'column2': ['a', 'b', 'c']
-#     })
-
-#     mock_read_csv.return_value = sample_df
-
-#     result_df = read_datastore()
-
-#     mock_get_url.assert_called_once_with('data/samples/sample.csv', repo='/home/user/Stock-market-prediction', remote='local_remote')
-#     mock_read_csv.assert_called_once_with('/mock/path/to/sample.csv')
-#     pd.testing.assert_frame_equal(result_df, sample_df)
-
-
