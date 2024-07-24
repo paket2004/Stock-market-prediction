@@ -47,20 +47,6 @@
     {
       "expectation_type": "expect_column_to_exist",
       "kwargs": {
-        "column": "Adj Close"
-      },
-      "meta": {}
-    },
-    {
-      "expectation_type": "expect_column_values_to_not_be_null",
-      "kwargs": {
-        "column": "Adj Close"
-      },
-      "meta": {}
-    },
-    {
-      "expectation_type": "expect_column_to_exist",
-      "kwargs": {
         "column": "Volume"
       },
       "meta": {}
@@ -624,14 +610,6 @@
       "expectation_type": "expect_column_values_to_be_between",
       "kwargs": {
         "column": "Low",
-        "min_value": 0
-      },
-      "meta": {}
-    },
-    {
-      "expectation_type": "expect_column_values_to_be_between",
-      "kwargs": {
-        "column": "Adj Close",
         "min_value": 0
       },
       "meta": {}

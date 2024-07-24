@@ -146,7 +146,7 @@ def log_metadata(metrics, model, model_type, X, y_val, y_pred, context, params=N
         mlflow.end_run()
     with mlflow.start_run(run_name=f"{model_type} {params.values() if params else ''}, {context}", experiment_id=experiment_id) as run:
 
-        mlflow.log_input(pd_dataset, context=context)
+        # mlflow.log_input(pd_dataset, context=context)
         
         if params:
             mlflow.log_params(params=params)
@@ -161,7 +161,7 @@ def log_metadata(metrics, model, model_type, X, y_val, y_pred, context, params=N
         mlflow.set_tag(f"{context} info", f"{model_type} model for my data")
         print()
         print(X.columns)
-        mlflow.sklearn.log_model(model, 'regression_model', input_example=X)
+        mlflow.sklearn.log_model(model, 'regression_model', input_example=X) #add registered model name, signature, predict_function
 
         result = mlflow.evaluate(data=pd_dataset, 
                                  model_type='regressor', 
