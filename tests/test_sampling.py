@@ -122,7 +122,7 @@ def test_sample_data(
     # Check if the sample.csv was created correctly
     mock_read_csv_df = sample_df.sample(frac=1, random_state=42).reset_index(drop=True)
     batch = mock_read_csv_df[10:20]
-    batch.to_csv.assert_called_once_with(os.path.join("/home/user/Stock-market-prediction", 'saved_batches', 'sample.csv'), index=False)
+    batch.to_csv.assert_called_once_with(os.path.join(project_root_dir, 'saved_batches', 'sample.csv'), index=False)
 
 
 
