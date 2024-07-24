@@ -10,9 +10,9 @@ on:
       - main
       - test_data
     paths: # the push should be specifically to the folders `src` or `scripts` to trigger this workflow, otherwise, the workflow will not be triggered
-      - 'src'
-      - 'scripts'
-      - 'tests'
+      - 'src/**'
+      - 'scripts/**'
+      - 'tests/**'
     # schedule:
     #   - cron: '0 0 * * *'
 
