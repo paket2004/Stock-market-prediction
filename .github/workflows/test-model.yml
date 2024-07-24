@@ -1,0 +1,32 @@
+name: Test Model
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'models/**' 
+
+jobs:
+  validate-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Checks out the repository code
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+        
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install giskard
+
+      - name: Validate model with Giskard
+        run: |
+          # Assuming you have a Giskard configuration file or commands
+          giskard validate --model-path path/to/best_champion_model --config path/to/giskard_config.yml
