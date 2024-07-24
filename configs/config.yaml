@@ -2,7 +2,7 @@ defaults:
   - model: gradient_boosting  
   - _self_
 
-example_version: 1
+example_version: 3
 port: 5151
 
 best_models: 
@@ -33,3 +33,4 @@ batch:
 data:
   target_cols: ['Adj Close']
   cat_cols: ['GICS Sector']
+  labels: 

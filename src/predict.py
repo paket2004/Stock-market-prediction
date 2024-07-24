@@ -28,8 +28,7 @@ def predict(cfg = None):
     )
 
     print(response.json())
-    print("encoded target labels: ", example_target)
-    print("target labels: ", list(cfg.data.labels)[example_target])
+    print('actual: ', example_target)
 
 
 if __name__=="__main__":
