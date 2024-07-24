@@ -1,20 +1,20 @@
-# .github/workflows/test-code.yml
-
 # Name of the workflow
-name: Testing
+name: Code Testing
 
 # Trigger when?
 on:
   push: # this will trigger the workflow/pipeline only if there is push on `main` branch
     branches:
       - main
-      - test_data
     paths: # the push should be specifically to the folders `src` or `scripts` to trigger this workflow, otherwise, the workflow will not be triggered
       - 'src/**'
       - 'scripts/**'
+      - 'services/airflow/dags/**'
       - 'tests/**'
-    # schedule:
-    #   - cron: '0 0 * * *'
+      - 'configs/**'
+      - '.github/**'
+  schedule:
+    - cron: '0 0 * * *'
 
 # Allows to only read the contents of the repository
 # `contents: read` permits an action to list the commits
