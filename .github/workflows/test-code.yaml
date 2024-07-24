@@ -12,8 +12,8 @@ on:
       - 'src'
       - 'scripts'
       - 'tests'
-    schedule:
-      - cron: '0 0 * * *'
+    # schedule:
+    #   - cron: '0 0 * * *'
 
 # Allows to only read the contents of the repository
 # `contents: read` permits an action to list the commits
