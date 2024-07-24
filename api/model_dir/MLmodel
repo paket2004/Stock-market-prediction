@@ -1,0 +1,59 @@
+artifact_path: regression_model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.11.0
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.5.0
+mlflow_version: 2.14.1
+model_size_bytes: 5966568
+model_uuid: 94f3ba34cf494c75ba9e446008bc2ffb
+run_id: 91c0886fc420479ab3068761d569aa50
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Open", "required": true}, {"type": "double",
+    "name": "High", "required": true}, {"type": "double", "name": "Low", "required":
+    true}, {"type": "double", "name": "Volume", "required": true}, {"type": "double",
+    "name": "News - Volume", "required": true}, {"type": "double", "name": "News -
+    Positive Sentiment", "required": true}, {"type": "double", "name": "News - Negative
+    Sentiment", "required": true}, {"type": "double", "name": "News - New Products",
+    "required": true}, {"type": "double", "name": "News - Store Openings", "required":
+    true}, {"type": "double", "name": "News - Adverse Events", "required": true},
+    {"type": "double", "name": "Day_sin", "required": true}, {"type": "double", "name":
+    "Day_cos", "required": true}, {"type": "double", "name": "Month_sin", "required":
+    true}, {"type": "double", "name": "Month_cos", "required": true}, {"type": "long",
+    "name": "Year", "required": true}, {"type": "long", "name": "Sector_Communication
+    Services", "required": true}, {"type": "long", "name": "Sector_Consumer Discretionary",
+    "required": true}, {"type": "long", "name": "Sector_Consumer Staples", "required":
+    true}, {"type": "long", "name": "Sector_Energy", "required": true}, {"type": "long",
+    "name": "Sector_Financials", "required": true}, {"type": "long", "name": "Sector_Health
+    Care", "required": true}, {"type": "long", "name": "Sector_Industrials", "required":
+    true}, {"type": "long", "name": "Sector_Information Technology", "required": true},
+    {"type": "long", "name": "Sector_Materials", "required": true}, {"type": "long",
+    "name": "Sector_Real Estate", "required": true}, {"type": "long", "name": "Sector_Utilities",
+    "required": true}, {"type": "long", "name": "Symbol_Index", "required": true},
+    {"type": "double", "name": "Emb_0", "required": true}, {"type": "double", "name":
+    "Emb_1", "required": true}, {"type": "double", "name": "Emb_2", "required": true},
+    {"type": "double", "name": "Emb_3", "required": true}, {"type": "double", "name":
+    "Emb_4", "required": true}, {"type": "double", "name": "Emb_5", "required": true},
+    {"type": "double", "name": "Emb_6", "required": true}, {"type": "double", "name":
+    "Emb_7", "required": true}, {"type": "double", "name": "Emb_8", "required": true},
+    {"type": "double", "name": "Emb_9", "required": true}, {"type": "double", "name":
+    "Emb_10", "required": true}, {"type": "double", "name": "Emb_11", "required":
+    true}, {"type": "double", "name": "Emb_12", "required": true}, {"type": "double",
+    "name": "Emb_13", "required": true}, {"type": "double", "name": "Emb_14", "required":
+    true}, {"type": "double", "name": "Emb_15", "required": true}]'
+  outputs: '[{"type": "double", "required": true}]'
+  params: null
+utc_time_created: '2024-07-23 20:13:18.626120'

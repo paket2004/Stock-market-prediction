@@ -10,3 +10,31 @@ entry_points:
       model_name: {type: str, default: "boosting_01_300_4"}
       data_sample_version: {type: int, default: 0}
     command: "python src/evaluate.py --model_alias {model_alias} --data_sample_version {data_sample_version}"
+
+  validate:
+    command: "python src/validate.py"
+
+  transform: 
+    command: 'python pipelines/data_prepare.py'
+
+  extract:
+    command: airflow dags test data_extract
+
+  deploy:
+    command: "scripts/deploy_docker.sh"
+
+  predict:
+    parameters:
+      example_version: 
+        type: int
+        default: 1
+      hostname:
+        type: string
+        default: "hostname"
+      port:
+        type: float
+        default: 5151
+      random_state:
+        type: float
+        default: 42
+    command: "python src/predict.py ++example_version={example_version} ++hostname={hostname} ++port={port} ++random_state={random_state}"

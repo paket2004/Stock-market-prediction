@@ -15,6 +15,7 @@ import gensim
 import zenml
 from zenml.client import Client
 import dvc.api
+import joblib
 
 from sklearn.model_selection import train_test_split
 
@@ -69,14 +70,20 @@ def sample_data():
 
         batch.to_csv(os.path.join(project_root_dir, cfg.batch.save_dir, f'sample.csv'), index=False)
         
-        print(counter)
+        print('data version: ',counter)
         return counter
 
 
-def read_datastore():
+def read_datastore(version):
+
+    repo_url = 'https://github.com/paket2004/Stock-market-prediction.git'  # URL to your DVC repository
+    rev = f'v{version}' 
+
     data_path = dvc.api.get_url(f'data/samples/sample.csv', 
-                                repo=project_root_dir,
+                                repo=repo_url,
+                                rev=rev,
                                 remote='local_remote')
+    data_path = project_root_dir+data_path
     df = pd.read_csv(data_path)
     return df
 
@@ -84,6 +91,8 @@ def read_datastore():
 
 
 def preprocess_data(df):
+
+    target_variable = 'Adj Close'
 
     model_path = os.path.join(project_root_dir, 'models', "word2vec-google-news-300.model")
     wv = gensim.models.KeyedVectors.load(model_path)
@@ -141,9 +150,37 @@ def preprocess_data(df):
 
 
     # One-hot-encoding on GICS Sector
-    stock_data_cleaned = pd.get_dummies(stock_data_cleaned, columns=['GICS Sector'], prefix='Sector', dtype=int)
+    all_sector = ['GICS Sector_Communication Services',
+       'GICS Sector_Consumer Discretionary', 'GICS Sector_Consumer Staples',
+       'GICS Sector_Energy', 'GICS Sector_Financials',
+       'GICS Sector_Health Care', 'GICS Sector_Industrials',
+       'GICS Sector_Information Technology', 'GICS Sector_Materials',
+       'GICS Sector_Real Estate', 'GICS Sector_Utilities']
+    
 
-    stock_data_cleaned.to_csv(os.path.join(project_root_dir, 'temp', f'sampleAfterOneHot.csv'), index=False)
+    encoder = joblib.load(f'{project_root_dir}/models/onehot_encoder.pkl')
+    categorical = stock_data_cleaned[['GICS Sector']].copy()
+    enc_categorical = encoder.fit_transform(categorical)
+    stock_data_cleaned = stock_data_cleaned.drop(['GICS Sector'], axis=1)
+    encoded_categorical_df = pd.DataFrame(enc_categorical, columns=encoder.get_feature_names_out())
+    all_sector_df = pd.DataFrame(0, index=stock_data_cleaned.index, columns=all_sector)
+
+    all_sector_df.update(encoded_categorical_df)
+    all_sector_df = all_sector_df.astype('int')
+
+    print(all_sector_df.head())
+    stock_data_cleaned = pd.concat([stock_data_cleaned, all_sector_df], axis=1)
+    def clean_column_names(df, substring):
+        # Create a dictionary with old column names as keys and new column names as values
+        new_columns = {col: col.replace(substring, '').strip() 
+                       if col !='GICS Sub-Industry' 
+                       else col
+                       for col in df.columns}
+        # Rename the columns
+        df.rename(columns=new_columns, inplace=True)
+
+    # Apply the function to remove 'GICS'
+    clean_column_names(stock_data_cleaned, 'GICS ')
 
     # Embedding Symbol
 
@@ -159,15 +196,20 @@ def preprocess_data(df):
     txt_embeddings = stock_data_cleaned['GICS Sub-Industry'].apply(lambda x: get_average_embedding(x))
     txt_embeddings = np.array(txt_embeddings.tolist())
 
-    pca = PCA(n_components=16)
-    pca_result = pca.fit_transform(txt_embeddings)
+    pca = joblib.load(f'{project_root_dir}/models/pca_model.pkl')
+
+    pca_result = pca.transform(txt_embeddings)
 
     embedding_cols = pd.DataFrame(pca_result, columns=[f'Emb_{i}' for i in range(16)])
 
     stock_data_cleaned = pd.concat([stock_data_cleaned.drop('GICS Sub-Industry', axis=1), embedding_cols], axis=1)
 
-    X = stock_data_cleaned.drop("Adj Close", axis=1)
-    y = stock_data_cleaned[['Adj Close']]
+    if target_variable in df.columns:
+        X = stock_data_cleaned.drop("Adj Close", axis=1)
+        y = stock_data_cleaned[['Adj Close']]
+    else:
+        X = stock_data_cleaned
+        y = None
 
     print('Columns in X:', X.columns.tolist())
 
@@ -221,13 +263,15 @@ def validate_features(X, y):
 def load_features(X: pd.DataFrame, y: pd.DataFrame, version: str):
     combined_df = pd.concat([X, y], axis=1)
 
-    zenml.save_artifact(data=combined_df, name="feature_target", version=version)
+    zenml.save_artifact(data=combined_df, name="feature_target_data", version=version)
     print('saved data v', version)
 
 def extract_data(version: str) -> pd.DataFrame:
-    artifact = zenml.load_artifact("feature_target", version)
+    artifact = zenml.load_artifact("feature_target_data", version)
 
     data = artifact
+    for col in data.select_dtypes(include='Int64').columns:
+        data[col] = data[col].astype(np.int64)
 
     return data
 
@@ -239,3 +283,4 @@ def split_data(train_data: pd.DataFrame, split_ratio: dict):
     train_set, val_set = train_test_split(train_data, train_size=train_size, random_state=random_seed)
 
     return train_set, val_set
+

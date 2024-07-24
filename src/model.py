@@ -53,14 +53,6 @@ def train(train_data: pd.DataFrame, validate_data: pd.DataFrame, model_config: d
     
     kf = KFold(n_splits=3)
 
-########################################################################################################
-    # mlflow.set_tracking_uri(uri="http://localhost:5000")
-    # experiment_name = "Stock Market Prediction"
-    # try:
-    #     experiment_id = mlflow.create_experiment(name=experiment_name)
-    # except mlflow.exceptions.MlflowException as e:
-    #     experiment_id = mlflow.get_experiment_by_name(experiment_name).experiment_id
-##########################################################################################################
 
     mlflow.sklearn.autolog(disable=True)  
 
@@ -97,22 +89,6 @@ def train(train_data: pd.DataFrame, validate_data: pd.DataFrame, model_config: d
 
     return best_models
             
-            # Log the model for this fold
-    #     with mlflow.start_run(run_name=f"{model_config['type']} {params}", experiment_id=experiment_id) as run:
-    #         mlflow.log_params(param_dict)
-    #         mlflow.log_metric("mse", fold_score)
-    #         mlflow.sklearn.log_model(model, f"model_fold_{fold}")
-
-    #         plot_and_log_metrics(y_fold_val, y_pred, fold)
-
-        
-    #     avg_score = np.mean(fold_scores)
-    #     if avg_score < best_score:
-    #         best_score = avg_score
-    #         best_model = model
-    #         best_params = param_dict
-    
-    # return best_model, best_params, best_score
 
 
 def evaluate(model, model_type, val_data, context, params=None):

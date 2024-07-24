@@ -2,7 +2,18 @@ defaults:
   - model: gradient_boosting  
   - _self_
 
-best_model_name: None
+example_version: 1
+port: 5151
+
+best_models: 
+    challenger3: 'boosting_01_100_3'
+    challenger2: 'boosting_01_200_3'
+    challenger1: 'boosting_01_300_3'
+    challenger4: 'lightgbm_01_300_5'
+
+threshold:
+  mae: 20
+  r2: 0.7
 
 split_ratio:
   train: 0.8

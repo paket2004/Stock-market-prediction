@@ -16,12 +16,13 @@ def extract_data_step(
                                 Annotated[str, 'version']]:
 
     print(os.path.abspath(__file__))
-    df = dt.read_datastore()
     with open(f"{project_root_dir}/configs/data_version.yaml", 'r') as file:
         config = yaml.safe_load(file)
         data_version = config['file_version']
+    df = dt.read_datastore(data_version-1)
+    
 
-    return df, str(data_version)
+    return df, str(data_version-1)
 
 @step(enable_cache=False)
 def transform_data_step(
@@ -56,6 +57,7 @@ def data_prepare_pipeline(
     load_data_step,
 ):
     data, version = extract_data_step()
+    print('     --- DATA VERSION (data_prepare)', version)
     X, y = transform_data_step(data=data)
     X, y = validate_data_step(X=X, y=y)
     load_data_step(X=X, y=y, version=version)

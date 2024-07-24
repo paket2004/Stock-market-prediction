@@ -37,6 +37,7 @@ def data_extract():
 
 
     def version_data(**context):
+        print('started versioning')
         version = context['ti'].xcom_pull(task_ids='extraction')
 
         commands = [
