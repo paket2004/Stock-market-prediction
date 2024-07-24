@@ -21,7 +21,7 @@ entry_points:
     command: airflow dags test data_extract
 
   deploy:
-    command: "scripts/deploy_docker.sh"
+    command: "sh scripts/deploy_docker.sh"
 
   predict:
     parameters:
