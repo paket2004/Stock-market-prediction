@@ -8,7 +8,7 @@ port: 5151
 best_models: 
     challenger3: 'boosting_01_100_3'
     challenger2: 'boosting_01_200_3'
-    challenger1: 'boosting_01_300_3'
+    champion: 'boosting_01_300_3'
     challenger4: 'lightgbm_01_300_5'
 
 threshold:
