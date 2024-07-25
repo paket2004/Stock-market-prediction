@@ -46,7 +46,7 @@ def main(cfg: DictConfig):
     print('started main.py...')
 
 
-    train_version = 0 #get_version()
+    train_version = get_version()
     test_version = train_version+1 if train_version < 4 else 0
 
     data = extract_data(str(train_version))
@@ -62,17 +62,7 @@ def main(cfg: DictConfig):
             break
         params = best_models[model][1]
         evaluate(model, cfg.model.type, test_data, 'test', params)
-
-    # model, params, _ = train(train_data, cfg.model)
-
-    # val_metrics, X, y_val, y_pred = evaluate(model, val_data)
-
-    # log_metadata(val_metrics, model, params, cfg.model.type, X, y_val, y_pred, prefix='Val')
-
-    # test_metrics, X, y_val, y_pred = evaluate(model, test_data)
-
-    # log_metadata(test_metrics, model, params, cfg.model.type, X, y_val, y_pred, prefix='Test')
-
+        
     download_artifacts()
 
 if __name__ == "__main__":
