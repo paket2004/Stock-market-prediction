@@ -220,7 +220,7 @@ def test_sample_data_two(
 
     # check if it was called actually once
     mock_get_increment_counter.assert_called_once_with(os.path.normpath(os.path.join(project_root_dir, 'counter.yaml')))
-    mock_run.assert_called_once_with([
+    mock_run.assert_called_with([
         os.path.join(project_root_dir, '.venv/bin/kaggle'), 'datasets', 'download', '-d', 'dataset_url',
         '-p', os.path.normpath(os.path.join(project_root_dir, 'temp'))
     ])

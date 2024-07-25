@@ -4,8 +4,21 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'models/**' 
+    paths: 
+      - 'src/**'
+      - 'scripts/**'
+      - 'services/airflow/dags/**'
+      - 'tests/**'
+      - 'configs/**'
+      - '.github/**'
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: read
+
+env:
+  message: "Model testing is passed!"
 
 jobs:
   validate-model:
@@ -28,5 +41,15 @@ jobs:
 
       - name: Validate model with Giskard
         run: |
-          # Assuming you have a Giskard configuration file or commands
-          giskard validate --model-path path/to/best_champion_model --config path/to/giskard_config.yml
+          python src/validate.py
+          
+  print_info:
+
+      runs-on: ubuntu-latest
+
+      # Run this job after running the job `test-code`
+      needs: validate-model
+      
+      steps:
+        - name: print message
+          run: echo $message
