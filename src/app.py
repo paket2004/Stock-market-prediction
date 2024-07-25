@@ -9,19 +9,7 @@ import pandas as pd
 import os
 from hydra import initialize_config_dir, compose
 
-# current_dir = os.path.dirname(__file__)
-# config_dir = os.path.join(current_dir, '..', 'configs')
-# config_name="config"
-
-# initialize_config_dir(config_dir)
-# cfg = compose(config_name=config_name)
-
-#---------------------------------------------------
-# dont know what port should be used, maybe the same as for flask... 
-# if needed, you can either take it from config (more generic way) or:
 port_number = 5002
-#---------------------------------------------------
-
 project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # define a parameter for each column in your raw dataset
@@ -66,9 +54,6 @@ def predict(date = None, open = None, high = None, low = None, close = None, adj
         data=payload,
         headers={"Content-Type": "application/json"},
     )
-    
-    # Change this to some meaningful output for your model
-    # For regression, it returns the predicted value
     return response.json()
 
 demo = gr.Interface(
@@ -106,8 +91,6 @@ demo = gr.Interface(
         gr.Number(label="News - Stock Rumors")
     ],
     
-    # The outputs here will get the returned value from `predict` function
-    # Don't know if should be converted to gr.Number
     outputs = gr.Text(label="prediction result"),
     examples=os.path.join(project_root_dir, 'gradio_examples', 'data', 'examples')
 )
