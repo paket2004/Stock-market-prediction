@@ -30,7 +30,7 @@ with initialize(config_path=relative_path):
 
     with open(counter_file_path, 'r') as counter_file:
         counter_data = yaml.safe_load(counter_file)
-        version = 0#counter_data.get('file_version', 0)
+        version = counter_data.get('file_version', 0)
 
 
 
