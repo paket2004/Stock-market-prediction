@@ -24,7 +24,7 @@ config_name="config"
 with initialize(config_path=relative_path):
     cfg = compose(config_name=config_name)
 
-    counter_file_path = os.path.join('..', cfg.batch.counter_file)
+    counter_file_path = os.path.join(project_root_dir, cfg.batch.counter_file)
 
     with open(counter_file_path, 'r') as counter_file:
         counter_data = yaml.safe_load(counter_file)
