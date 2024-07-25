@@ -21,6 +21,7 @@ env:
   message: "Model testing is passed!"
 
 jobs:
+
   validate-model:
     runs-on: ubuntu-latest
 
@@ -38,6 +39,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install giskard
+      
+      - name: Load word2vec 
+        run: |
+          python scripts/load_model.py
 
       - name: Validate model with Giskard
         run: |
