@@ -3,7 +3,7 @@ This repository contains code for predicting stock market trends using various m
 
 ![Test code workflow](https://github.com/paket2004/Stock-Market-Prediction/actions/workflows/test-code.yml/badge.svg)
 
-![Test code workflow](https://github.com/paket2004/Stock-Market-Prediction/actions/workflows/test-mofrl.yml/badge.svg)
+![Test code workflow](https://github.com/paket2004/Stock-Market-Prediction/actions/workflows/test-model.yml/badge.svg)
 
 ## Installation
 To set up the project, follow these steps:
