@@ -35,7 +35,7 @@ with initialize(config_path=relative_path):
 
     # Specify categorical columns and target column
     TARGET_COLUMN = cfg.data.target_cols[0]
-    CATEGORICAL_COLUMNS = list(cfg.data.cat_cols) + list(cfg.data.bin_cols)
+    CATEGORICAL_COLUMNS = list(cfg.data.cat_cols)
 
     # Wrap your Pandas DataFrame with giskard.Dataset (validation or test set)
     giskard_dataset = giskard.Dataset(
