@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate model with Giskard
         run: |
-          python src/validate.py
+          python src/validate_champion.py
           
   print_info:
 
