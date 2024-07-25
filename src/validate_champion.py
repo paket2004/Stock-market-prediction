@@ -1,10 +1,9 @@
 from data import read_datastore, preprocess_data # custom module
-from model import retrieve_model_with_alias # custom module
 import giskard
 from hydra import initialize, compose
 import os
 import yaml
-import mlflow
+import pickle
 
 
 def predict(raw_df, model):
@@ -45,22 +44,20 @@ with initialize(config_path=relative_path):
         cat_columns=CATEGORICAL_COLUMNS 
     )
 
-    best_models = cfg.best_models
-    model_alias = 'champion'
-    model_name = best_models[model_alias]
-    model, model_version = retrieve_model_with_alias(model_name, model_alias = model_alias)  
+    model_path = os.path.join(project_root_dir, 'api', 'model_dir', 'model.pkl')
+    model = pickle.load(open(model_path,'rb'))
+
 
 
     giskard_model = giskard.Model(
         model=predict,
         model_type="regression",
-        name=model_name,
         feature_names=df.columns, 
     )
 
     scan_results = giskard.scan(giskard_model, giskard_dataset)
 
-    suite_name = f"test_suite_{model_name}_{model_version}_{dataset_name}_{version}"
+    suite_name = f"test_suite_champion_{dataset_name}_{version}"
     test_suite = giskard.Suite(name = suite_name)
 
     test1 = giskard.testing.test_mae(model = giskard_model, 
