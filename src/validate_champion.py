@@ -1,4 +1,5 @@
 from data import read_datastore, preprocess_data # custom module
+from model import retrieve_model_with_alias # custom module
 import giskard
 from hydra import initialize, compose
 import os
@@ -47,7 +48,10 @@ with initialize(config_path=relative_path):
     model_path = os.path.join(project_root_dir, 'api', 'model_dir', 'model.pkl')
     model = pickle.load(open(model_path,'rb'))
 
-
+    def predict(raw_df):
+        X, _ = preprocess_data(df=raw_df)
+        predictions = model.predict(X)
+        return predictions
 
     giskard_model = giskard.Model(
         model=predict,
