@@ -77,8 +77,6 @@ def test_read_datastore():
         with mock.patch('pandas.read_csv', return_value=mock_df):
             # Call the function
             df = read_datastore('1.0')  # Replace '1.0' with the desired version for your test
-
-            # Assert that the dataframe returned is as expected
             assert df.equals(mock_df)
             
 
