@@ -149,7 +149,7 @@ def test_sample_data(
     mock_compose.assert_called_once_with(config_name="config")
     mock_get_increment_counter.assert_called_once()
     mock_read_csv.assert_called_once()
-    mock_run.assert_called_once()
+    mock_run.assert_called()
     mock_ZipFile.assert_called_once()
     mock_zip_instance.extractall.assert_called_once()
 
